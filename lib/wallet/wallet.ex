@@ -2,6 +2,7 @@ defmodule Wallet.Wallet do
   @enforce_keys [:id]
   defstruct [:id, :balance]
 
+  ### Public API ###
 
   # Create Wallet
   def execute(%Wallet.Wallet{id: nil}, %Wallet.CreateWallet{id: id}) do
@@ -19,16 +20,15 @@ defmodule Wallet.Wallet do
 
 
 
+  ### State mutators ###
+
   # Wallet Created
-
-
   def apply(%Wallet.Wallet{} = wallet, %Wallet.WalletCreated{id: id}) do
     %Wallet.Wallet{wallet | id: id, balance: 0}
   end
 
 
   # Deposited
-
   def apply(%Wallet.Wallet{} = wallet, %Wallet.Deposited{id: id, amount: amount}) do
     %Wallet.Wallet{wallet | id: id, balance: wallet.balance + amount}
   end
