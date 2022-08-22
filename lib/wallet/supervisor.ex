@@ -12,7 +12,7 @@ defmodule Wallet.Supervisor do
       Wallet.Application,
 
       # Event handler
-      Wallet.WalletBalanceHandler,
+      Wallet.BalanceHandler,
 
 
       # TODO: add these

@@ -5,5 +5,5 @@ defmodule Wallet.Application do
       adapter: Commanded.EventStore.Adapters.EventStore,
       event_store: Wallet.EventStore
     ]
-    router Wallet.WalletRouter
+    router(Wallet.Router)
 end

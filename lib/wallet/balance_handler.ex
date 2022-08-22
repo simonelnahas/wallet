@@ -1,4 +1,4 @@
-defmodule Wallet.WalletBalanceHandler do
+defmodule Wallet.BalanceHandler do
   use Commanded.Event.Handler,
      application: Wallet.Application,
      name: __MODULE__
