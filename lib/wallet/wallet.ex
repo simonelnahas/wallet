@@ -10,6 +10,8 @@ defmodule Wallet.Wallet do
      {:error, :already_created}
   end
 
+  
+
   def apply(%Wallet.Wallet{} = wallet, %Wallet.WalletCreated{id: id}) do
     %Wallet.Wallet{wallet | id: id, balance: 0}
   end
