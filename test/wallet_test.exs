@@ -6,6 +6,9 @@ defmodule WalletTest do
 
   doctest Wallet
 
+
+  ### Create Wallet ###
+
   test "CreateWallet results in WalletCreated" do
     wallet_id = "5"
     :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
@@ -37,6 +40,10 @@ defmodule WalletTest do
              balance: 0
            } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
+
+
+
+  ### Deposits ###
 
   test "deposit to wallet" do
     wallet_id = "42"
@@ -127,4 +134,50 @@ defmodule WalletTest do
              balance: 342
            } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
+
+
+  ### Transfers ###
+  test "" do
+
+    # Create wallets for Alice and Bob
+    wallet_id_alice = "42"
+    wallet_id_bob = "24"
+    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id_alice})
+
+    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
+      event.id == wallet_id_alice
+    end)
+
+    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id_bob})
+
+    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
+      event.id == wallet_id_bob
+    end)
+
+    # Deposit to Alice 242
+    assert :ok = Wallet.Application.dispatch(%Wallet.Deposit{id: wallet_id_alice, amount: 242})
+
+    wait_for_event(Wallet.Application, Wallet.Deposited, fn event ->
+      event.amount == 242
+    end)
+
+
+    # Transfer 100 from Alice to Bob
+    assert :ok = Wallet.Application.dispatch(%Wallet.Transfer{from_id: wallet_id_alice, to_id: wallet_id_bob, amount: 100})
+
+    # Alice has 142
+    assert %Wallet.Wallet{
+      id: wallet_id_alice,
+      balance: 142
+    } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id_alice)
+
+    # Bob has 100
+    assert %Wallet.Wallet{
+          id: wallet_id_bob,
+          balance: 100
+        } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id_bob)
+
+
+  end
+
 end

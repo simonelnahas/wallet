@@ -5,4 +5,5 @@ defmodule Wallet.Router do
 
   dispatch Wallet.CreateWallet, to: Wallet.Wallet
   dispatch Wallet.Deposit, to: Wallet.Wallet
+  dispatch Wallet.Transfer, to: Wallet.Wallet
 end

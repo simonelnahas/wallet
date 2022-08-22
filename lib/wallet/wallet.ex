@@ -18,6 +18,13 @@ defmodule Wallet.Wallet do
     %Wallet.Deposited{id: id, amount: amount}
   end
 
+  # Transfer
+  def execute(%Wallet.Wallet{}, %Wallet.Transfer{from_id: from_id, to_id: to_id, amount: amount}) do
+    #TODO check if there is enough money in account
+    #TODO
+  end
+
+
 
 
   ### State mutators ###
@@ -32,6 +39,9 @@ defmodule Wallet.Wallet do
   def apply(%Wallet.Wallet{} = wallet, %Wallet.Deposited{id: id, amount: amount}) do
     %Wallet.Wallet{wallet | id: id, balance: wallet.balance + amount}
   end
+
+  # Transfered
+  #TODO
 
 
 end
