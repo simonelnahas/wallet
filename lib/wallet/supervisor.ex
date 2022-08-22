@@ -11,7 +11,7 @@ defmodule Wallet.Supervisor do
       # Application
       Wallet.Application,
 
-      # Event handler
+      # # Event handler
       # Wallet.BalanceHandler,
 
       # # Process manager
