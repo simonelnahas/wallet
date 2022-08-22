@@ -1,18 +1,8 @@
 defmodule Wallet do
-  @moduledoc """
-  Documentation for `Wallet`.
-  """
+  use Application
 
-  @doc """
-  Hello world.
-
-  ## Examples
-
-      iex> Wallet.hello()
-      :world
-
-  """
-  def hello do
-    :world
+  def start(_type, _args) do
+    Wallet.Supervisor.start_link(nil)
   end
+
 end

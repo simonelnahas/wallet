@@ -1,13 +1,15 @@
 defmodule Wallet.MixProject do
   use Mix.Project
 
+
   def project do
     [
       app: :wallet,
       version: "0.1.0",
       elixir: "~> 1.13",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      elixirc_paths: elixirc_paths(Mix.env())
     ]
   end
 
@@ -15,7 +17,7 @@ defmodule Wallet.MixProject do
   def application do
     [
       extra_applications: [:logger],
-      # mod: {Wallet.Application, []}
+      mod: {Wallet, []}
     ]
   end
 
@@ -29,4 +31,9 @@ defmodule Wallet.MixProject do
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
     ]
   end
+
+  # # Include `test/support` files in test environment
+  defp elixirc_paths(:test), do: ["lib", "test/support"]
+  defp elixirc_paths(_), do: ["lib"]
+
 end
