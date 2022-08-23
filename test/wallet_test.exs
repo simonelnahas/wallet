@@ -106,24 +106,21 @@ defmodule WalletTest do
   test "withdraw from wallet" do
     wallet_id = "42"
 
-    # # create wallet
-    # assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
+    # create wallet
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
-    # # Deposit 242
-    # assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 242})
+    # Deposit 242
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 242})
 
-    # # Withdraw 42
-    # assert :ok = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
-
-    # # Balance is 200
-    # assert %Wallet.Wallet{
-    #   id: wallet_id,
-    #   balance: 200
-    # } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
+    # Withdraw 42
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
 
 
-
-
+    # Balance is 200
+    assert %Wallet.Wallet{
+      id: wallet_id,
+      balance: 200
+    } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
 
 
