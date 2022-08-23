@@ -5,24 +5,24 @@ defmodule Wallet.Wallet do
   ### Public API ###
 
   # Create Wallet
-  def execute(%Wallet.Wallet{id: nil}, %Wallet.CreateWallet{id: id}) do
-    %Wallet.WalletCreated{id: id}
+  def execute(%Wallet.Wallet{id: nil}, %Wallet.Commands.CreateWallet{id: id}) do
+    %Wallet.Events.WalletCreated{id: id}
   end
 
-  def execute(%Wallet.Wallet{}, %Wallet.CreateWallet{}) do
+  def execute(%Wallet.Wallet{}, %Wallet.Commands.CreateWallet{}) do
      {:error, :already_created}
   end
 
   # Deposit
-  def execute(%Wallet.Wallet{}, %Wallet.Deposit{id: id, amount: amount}) do
-    %Wallet.Deposited{id: id, amount: amount}
+  def execute(%Wallet.Wallet{}, %Wallet.Commands.DepositMoney{id: id, amount: amount}) do
+    %Wallet.Events.MoneyDeposited{id: id, amount: amount}
   end
 
   # Transfer
-  def execute(%Wallet.Wallet{}, %Wallet.Transfer{from_id: from_id, to_id: to_id, amount: amount}) do
-    #TODO check if there is enough money in account
-    #TODO
-  end
+  # def execute(%Wallet.Wallet{}, %Wallet.Commands.Transfer{from_id: from_id, to_id: to_id, amount: amount}) do
+  #   #TODO check if there is enough money in account
+  #   #TODO
+  # end
 
 
 
@@ -30,13 +30,13 @@ defmodule Wallet.Wallet do
   ### State mutators ###
 
   # Wallet Created
-  def apply(%Wallet.Wallet{} = wallet, %Wallet.WalletCreated{id: id}) do
+  def apply(%Wallet.Wallet{} = wallet, %Wallet.Events.WalletCreated{id: id}) do
     %Wallet.Wallet{wallet | id: id, balance: 0}
   end
 
 
   # Deposited
-  def apply(%Wallet.Wallet{} = wallet, %Wallet.Deposited{id: id, amount: amount}) do
+  def apply(%Wallet.Wallet{} = wallet, %Wallet.Events.MoneyDeposited{id: id, amount: amount}) do
     %Wallet.Wallet{wallet | id: id, balance: wallet.balance + amount}
   end
 

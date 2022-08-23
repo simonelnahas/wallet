@@ -3,7 +3,7 @@ defmodule Wallet.Router do
 
   identify Wallet.Wallet, by: :id
 
-  dispatch Wallet.CreateWallet, to: Wallet.Wallet
-  dispatch Wallet.Deposit, to: Wallet.Wallet
-  dispatch Wallet.Transfer, to: Wallet.Wallet
+  dispatch Wallet.Commands.CreateWallet, to: Wallet.Wallet
+  dispatch Wallet.Commands.DepositMoney, to: Wallet.Wallet
+  dispatch Wallet.Commands.Transfer, to: Wallet.Wallet
 end
