@@ -6,31 +6,30 @@ defmodule WalletTest do
 
   doctest Wallet
 
+
+  ### Create Wallet ###
+
   test "CreateWallet results in WalletCreated" do
     wallet_id = "5"
-    :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
+    :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
-    assert_receive_event(Wallet.Application, Wallet.WalletCreated, fn event ->
+    assert_receive_event(Wallet.Application, Wallet.Events.WalletCreated, fn event ->
       assert event.id == wallet_id
     end)
   end
 
   test "creating to wallets with same id fails" do
     wallet_id = "42"
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
     assert {:error, :already_created} =
-             Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
+             Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
   end
 
   test "balance of new wallet is 0" do
     wallet_id = "42"
 
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
-
-    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
-      assert event.id == wallet_id
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
     assert %Wallet.Wallet{
              id: wallet_id,
@@ -38,22 +37,19 @@ defmodule WalletTest do
            } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
 
+
+
+
+  ### Deposits ###
+
   test "deposit to wallet" do
     wallet_id = "42"
 
     # Create wallet
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
-
-    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
-      assert event.id == wallet_id
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
     # Deposit to wallet
-    assert :ok = Wallet.Application.dispatch(%Wallet.Deposit{id: wallet_id, amount: 242})
-
-    wait_for_event(Wallet.Application, Wallet.Deposited, fn event ->
-      assert event.id == wallet_id and event.amount == 242
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 242})
 
     assert %Wallet.Wallet{
              id: wallet_id,
@@ -65,24 +61,12 @@ defmodule WalletTest do
     # Create wallets for Alice and Bob
     wallet_id_alice = "42"
     wallet_id_bob = "24"
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id_alice})
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id_alice})
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id_bob})
 
-    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
-      event.id == wallet_id_alice
-    end)
-
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id_bob})
-
-    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
-      event.id == wallet_id_bob
-    end)
 
     # Deposit to Alice 242
-    assert :ok = Wallet.Application.dispatch(%Wallet.Deposit{id: wallet_id_alice, amount: 242})
-
-    wait_for_event(Wallet.Application, Wallet.Deposited, fn event ->
-      event.amount == 242
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id_alice, amount: 242})
 
     # Alice has 242
     assert %Wallet.Wallet{
@@ -101,25 +85,13 @@ defmodule WalletTest do
     wallet_id = "42"
 
     # create wallet
-    assert :ok = Wallet.Application.dispatch(%Wallet.CreateWallet{id: wallet_id})
-
-    wait_for_event(Wallet.Application, Wallet.WalletCreated, fn event ->
-      event.id == wallet_id
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
 
     # Deposit 242
-    assert :ok = Wallet.Application.dispatch(%Wallet.Deposit{id: wallet_id, amount: 242})
-
-    wait_for_event(Wallet.Application, Wallet.Deposited, fn event ->
-      event.amount == 242
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 242})
 
     # Deposit 100
-    assert :ok = Wallet.Application.dispatch(%Wallet.Deposit{id: wallet_id, amount: 100})
-
-    wait_for_event(Wallet.Application, Wallet.Deposited, fn event ->
-      event.amount == 100
-    end)
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 100})
 
     # Balance is 342
     assert %Wallet.Wallet{
@@ -127,4 +99,81 @@ defmodule WalletTest do
              balance: 342
            } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
+
+
+  ### Withdrawals ###
+
+  test "withdraw from wallet" do
+    wallet_id = "42"
+
+    # create wallet
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
+
+    # Deposit 242
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id, amount: 242})
+
+    # Withdraw 42
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
+
+
+    # Balance is 200
+    assert %Wallet.Wallet{
+      id: wallet_id,
+      balance: 200
+    } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
+  end
+
+  test "withdrawing money from empty wallet" do
+    wallet_id = "42"
+
+    # create wallet
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
+
+    # Withdraw 42
+    assert {:error, :insufficient_balance} = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
+
+    # Balance is 0
+    assert %Wallet.Wallet{
+      id: wallet_id,
+      balance: 0
+    } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
+  end
+
+  test "withdrawing money from non-existent wallet" do
+    wallet_id = "42"
+
+    # Withdraw
+    assert {:error, :wallet_does_not_exist} = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
+  end
+
+  ### Transfers ###
+  # test "Transferring 100 from Alice to Bob" do
+
+  #   # Create wallets for Alice and Bob
+  #   wallet_id_alice = "42"
+  #   wallet_id_bob = "24"
+  #   assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id_alice})
+  #   assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id_bob})
+
+  #   # Deposit to Alice 242
+  #   assert :ok = Wallet.Application.dispatch(%Wallet.Commands.DepositMoney{id: wallet_id_alice, amount: 242})
+
+  #   # Transfer 100 from Alice to Bob
+  #   assert :ok = Wallet.Application.dispatch(%Wallet.Commands.Transfer{from_id: wallet_id_alice, to_id: wallet_id_bob, amount: 100})
+
+  #   # Alice has 142
+  #   assert %Wallet.Wallet{
+  #     id: wallet_id_alice,
+  #     balance: 142
+  #   } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id_alice)
+
+  #   # Bob has 100
+  #   assert %Wallet.Wallet{
+  #         id: wallet_id_bob,
+  #         balance: 100
+  #       } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id_bob)
+
+
+  # end
+
 end

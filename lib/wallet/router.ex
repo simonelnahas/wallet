@@ -1,8 +1,14 @@
 defmodule Wallet.Router do
   use Commanded.Commands.Router
 
-  identify Wallet.Wallet, by: :id
+  alias Wallet.Commands
 
-  dispatch Wallet.CreateWallet, to: Wallet.Wallet
-  dispatch Wallet.Deposit, to: Wallet.Wallet
+  identify(Wallet.Wallet, by: :id)
+
+  dispatch([
+      Commands.CreateWallet,
+      Commands.DepositMoney,
+      Commands.WithdrawMoney,
+      Commands.Transfer
+  ], to: Wallet.Wallet)
 end
