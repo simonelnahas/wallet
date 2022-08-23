@@ -123,6 +123,28 @@ defmodule WalletTest do
     } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
   end
 
+  test "withdrawing money from empty wallet" do
+    wallet_id = "42"
+
+    # create wallet
+    assert :ok = Wallet.Application.dispatch(%Wallet.Commands.CreateWallet{id: wallet_id})
+
+    # Withdraw 42
+    assert {:error, :insufficient_balance} = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
+
+    # Balance is 0
+    assert %Wallet.Wallet{
+      id: wallet_id,
+      balance: 0
+    } = Aggregate.aggregate_state(Wallet.Application, Wallet.Wallet, wallet_id)
+  end
+
+  test "withdrawing money from non-existent wallet" do
+    wallet_id = "42"
+
+    # Withdraw
+    assert {:error, :wallet_does_not_exist} = Wallet.Application.dispatch(%Wallet.Commands.WithdrawMoney{id: wallet_id, amount: 42})
+  end
 
   ### Transfers ###
   # test "Transferring 100 from Alice to Bob" do
